@@ -8,9 +8,6 @@ Code repository from a building microservice in Go [youtube series](https://www.
 - [ ] gRPC microservices
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
-- [ ] gRPC microservices
-- [ ] Packaging applications with Docker
-- [ ] Testing microservice
 - [ ] Continuous Delivery
 - [ ] Observability
 - [ ] Using Kubernetes
