@@ -23,10 +23,12 @@ func main() {
 
 	// create the handlers
 	hh := handlers.NewHello(l)
+	gh := handlers.NewGoodBy(l)
 
 	// create a new serve mux and register the handlers
 	sm := http.NewServeMux()
 	sm.Handle("/", hh)
+	sm.Handle("/goodbye", gh)
 
 	// create a new server
 	srv := http.Server{
