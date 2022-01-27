@@ -1,4 +1,4 @@
-product-api/main.gopackage main
+package main
 
 import (
 	"context"
