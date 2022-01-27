@@ -42,7 +42,7 @@ func main() {
 
 	// start the server
 	go func() {
-		l.Printf("starting server on port %v", bindAddress)
+		l.Printf("starting server on port %v", bindAddr)
 
 		err := srv.ListenAndServe()
 		if err != nil {
@@ -59,7 +59,7 @@ func main() {
 
 	// Block until a signal is received.
 	sig := <-c
-	l.Println("got signal: %v. trying graceful shutdown", sig)
+	l.Printf("got signal: %v. trying graceful shutdown", sig)
 
 	// gracefully shutdown the server, waiting max 30 seconds for current operations to complete
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
