@@ -22,6 +22,7 @@ func NewProducts(l *log.Logger) *products {
 func (p *products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		getProducts(rw, r)
+		return
 	}
 
 	// catch all
@@ -29,8 +30,9 @@ func (p *products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusMethodNotAllowed)
 }
 
-func getProducts(rw http.ResponseWriter, r *http.Request) {
 // getProducts returns the products from the data store
+func (p *products) getProducts(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle GET Products")
 
 	// fetch the products from the datastore
 	lp := data.GetProducts()
