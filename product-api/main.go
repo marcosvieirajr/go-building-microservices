@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/handlers"
 )
@@ -25,13 +26,15 @@ func main() {
 	ph := handlers.NewProducts(l)
 
 	// create a new serve mux and register the handlers
-	sm := http.NewServeMux()
-	sm.Handle("/products", ph)
+	r := mux.NewRouter()
+	r.HandleFunc("/products", ph.GetProducts).Methods(http.MethodGet) //.Subrouter().Use()
+	r.HandleFunc("/products", ph.AddProducts).Methods(http.MethodPost)
+	r.HandleFunc("/products/{id:[0-9]+}", ph.UpdateProduct).Methods(http.MethodPut)
 
 	// create a new server
 	srv := http.Server{
 		Addr:         bindAddr,          // configure the bind address
-		Handler:      sm,                // set the default handler
+		Handler:      r,                 // set the default handler
 		ErrorLog:     l,                 // set the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from the client
 		WriteTimeout: 10 * time.Second,  // max time to write response to the client
