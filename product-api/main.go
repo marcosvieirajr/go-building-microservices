@@ -27,9 +27,17 @@ func main() {
 
 	// create a new serve mux and register the handlers
 	r := mux.NewRouter()
-	r.HandleFunc("/products", ph.GetProducts).Methods(http.MethodGet) //.Subrouter().Use()
-	r.HandleFunc("/products", ph.AddProducts).Methods(http.MethodPost)
-	r.HandleFunc("/products/{id:[0-9]+}", ph.UpdateProduct).Methods(http.MethodPut)
+
+	getRouter := r.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/products", ph.GetProducts)
+
+	postRouter := r.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/products", ph.AddProducts)
+	postRouter.Use(ph.MiddlewareValidateProduct)
+
+	putRouter := r.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.UpdateProduct)
+	putRouter.Use(ph.MiddlewareValidateProduct)
 
 	// create a new server
 	srv := http.Server{

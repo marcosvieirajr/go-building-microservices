@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -38,12 +39,9 @@ func (p *products) GetProducts(rw http.ResponseWriter, r *http.Request) {
 func (p *products) AddProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST Products")
 
-	prod := &data.Product{}
-	err := prod.FromJSON(r.Body)
-	if err != nil {
-		http.Error(rw, "unable to unmarshal json", http.StatusBadRequest)
-	}
-	data.AddProduct(prod)
+	prod := r.Context().Value(ProductKey{}).(data.Product)
+
+	data.AddProduct(&prod)
 
 	rw.Header().Add("Locator", fmt.Sprintf("%v/%v", r.RequestURI, prod.ID))
 	rw.WriteHeader(http.StatusCreated)
@@ -58,14 +56,9 @@ func (p *products) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Unable to convert id", http.StatusBadRequest)
 	}
 
-	prod := &data.Product{}
+	prod := r.Context().Value(ProductKey{}).(data.Product)
 
-	err = prod.FromJSON(r.Body)
-	if err != nil {
-		http.Error(rw, "unable to unmarshal json", http.StatusBadRequest)
-	}
-
-	err = data.UpdateProduct(id, prod)
+	err = data.UpdateProduct(id, &prod)
 	if err == data.ErrProductNotFound {
 		http.Error(rw, "Product not found", http.StatusNotFound)
 		return
@@ -77,4 +70,25 @@ func (p *products) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	rw.WriteHeader(http.StatusNoContent)
+}
+
+type ProductKey struct{}
+
+func (p products) MiddlewareValidateProduct(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		prod := data.Product{}
+		err := prod.FromJSON(r.Body)
+		if err != nil {
+			p.l.Println("[ERROR] deserializing product", err)
+			http.Error(rw, "error reading product", http.StatusBadRequest)
+			return
+		}
+
+		// add the product to the context
+		ctx := context.WithValue(r.Context(), ProductKey{}, prod)
+		r = r.WithContext(ctx)
+
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(rw, r)
+	})
 }
