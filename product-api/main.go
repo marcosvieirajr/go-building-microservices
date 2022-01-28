@@ -22,13 +22,11 @@ func main() {
 	bindAddr := os.Getenv("BIND_ADDRESS")
 
 	// create the handlers
-	hh := handlers.NewHello(l)
-	gh := handlers.NewGoodBy(l)
+	ph := handlers.NewProducts(l)
 
 	// create a new serve mux and register the handlers
 	sm := http.NewServeMux()
-	sm.Handle("/", hh)
-	sm.Handle("/goodbye", gh)
+	sm.Handle("/products", ph)
 
 	// create a new server
 	srv := http.Server{
