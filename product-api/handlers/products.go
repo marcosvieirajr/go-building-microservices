@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -21,7 +22,12 @@ func NewProducts(l *log.Logger) *products {
 // interface
 func (p *products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		getProducts(rw, r)
+		p.getProducts(rw, r)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		p.addProducts(rw, r)
 		return
 	}
 
@@ -35,18 +41,25 @@ func (p *products) getProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle GET Products")
 
 	// fetch the products from the datastore
-	lp := data.GetProducts()
+	pl := data.GetProducts()
 
 	// serialize the list to JSON
-	err := lp.ToJSON(rw)
+	err := pl.ToJSON(rw)
 	if err != nil {
 		http.Error(rw, "unable to marshal json", http.StatusInternalServerError)
 	}
 }
 
-func postProducts(rw http.ResponseWriter, r *http.Request) {
-	log.Print("POST calledo")
-	// ps := []product{}
-	// json.Unmarshal([]byte(r.Body.Read()), &ps)
-	// log.Println("****", ps)
+func (p *products) addProducts(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle POST Products")
+
+	prod := &data.Product{}
+	err := prod.FromJSON(r.Body)
+	if err != nil {
+		http.Error(rw, "unable to unmarshal json", http.StatusBadRequest)
+	}
+	data.AddProduct(prod)
+
+	rw.Header().Add("Locator", fmt.Sprintf("/%v", prod.ID))
+	rw.WriteHeader(http.StatusCreated)
 }
