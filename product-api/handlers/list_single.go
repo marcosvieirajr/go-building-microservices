@@ -27,11 +27,12 @@ func (p *products) ListSingle(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
+	rw.WriteHeader(http.StatusOK)
+
 	err = data.ToJSON(prod, rw)
 	if err != nil {
 		// we should never be here but log the error just incase
 		p.l.Println("[ERROR] serializing product", err)
 	}
-	// TODO: add response type
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
 }

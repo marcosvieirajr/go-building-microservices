@@ -12,14 +12,13 @@ func (p *products) ListAll(rw http.ResponseWriter, r *http.Request) {
 	// fetch the products from the datastore
 	prods := data.GetProducts()
 
+	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
+	rw.WriteHeader(http.StatusOK)
+
 	// serialize the list to JSON
 	err := data.ToJSON(prods, rw)
 	if err != nil {
 		// we should never be here but log the error just incase
 		p.l.Println("[ERROR] get all records")
 	}
-
-	// TODO:  revisar Content-Type
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
-	// rw.WriteHeader(http.StatusOK)
 }

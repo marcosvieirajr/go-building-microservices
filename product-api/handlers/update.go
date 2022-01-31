@@ -23,5 +23,6 @@ func (p *products) Update(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
 	rw.WriteHeader(http.StatusNoContent)
 }

@@ -47,10 +47,10 @@ func UpdateProduct(p Product) error {
 	return nil
 }
 
-func AddProduct(p Product) {
+func AddProduct(p *Product) {
 	maxId := productList[len(productList)-1].ID
 	p.ID = maxId + 1
-	productList = append(productList, &p)
+	productList = append(productList, p)
 }
 
 func DeleteProduct(id int) error {
