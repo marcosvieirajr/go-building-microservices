@@ -1,14 +1,12 @@
 package data
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"regexp"
+	"fmt"
 	"time"
-
-	"github.com/go-playground/validator"
 )
+
+// ErrProductNotFound is an error raised when a product can not be found in the database
+var ErrProductNotFound = fmt.Errorf("Product not found")
 
 // Product defines the structure for an API product
 type Product struct {
@@ -25,82 +23,53 @@ type Product struct {
 // Products is a collection of Product
 type Products []*Product
 
-// ToJSON serializes the contents of the collection to JSON
-// NewEncoder provides better performance than json.Unmarshal as it does not
-// have to buffer the output into an in memory slice of bytes
-// this reduces allocations and the overheads of the service
-//
-// https://golang.org/pkg/encoding/json/#NewEncoder
-func (p *Products) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(p)
-}
-
-func (p *Product) FromJSON(r io.Reader) error {
-	d := json.NewDecoder(r)
-	return d.Decode(p)
-}
-
 // GetProducts returns a list of products
 func GetProducts() Products {
 	return productList
 }
 
-func UpdateProduct(id int, p *Product) error {
-	pos, err := findProduct(id)
-	if err != nil {
-		return err
+func GetProductById(id int) (*Product, error) {
+	i := findIndexByProductId(id)
+	if i == -1 {
+		return nil, ErrProductNotFound
 	}
 
-	p.ID = id
-	productList[pos] = p
+	return productList[i], nil
+}
+
+func UpdateProduct(p Product) error {
+	i := findIndexByProductId(p.ID)
+	if i == -1 {
+		return ErrProductNotFound
+	}
+
+	productList[i] = &p
 	return nil
+}
+
+func AddProduct(p Product) {
+	maxId := productList[len(productList)-1].ID
+	p.ID = maxId + 1
+	productList = append(productList, &p)
 }
 
 func DeleteProduct(id int) error {
-	pos, err := findProduct(id)
-	if err != nil {
-		return err
+	i := findIndexByProductId(id)
+	if i == -1 {
+		return ErrProductNotFound
 	}
 
-	productList = append(productList[:pos], productList[pos+1:]...)
+	productList = append(productList[:i], productList[i+1:]...)
 	return nil
 }
 
-var ErrProductNotFound = errors.New("product not found")
-
-func findProduct(id int) (int, error) {
+func findIndexByProductId(id int) int {
 	for i, p := range productList {
 		if p.ID == id {
-			return i, nil
+			return i
 		}
 	}
-	return -1, ErrProductNotFound
-}
-
-func AddProduct(p *Product) {
-	p.ID = getNextID()
-	productList = append(productList, p)
-}
-
-func getNextID() int {
-	lp := productList[len(productList)-1]
-	return lp.ID + 1
-}
-
-func (p *Product) Validate() error {
-	validate := validator.New()
-	validate.RegisterValidation("sku", validateSKU)
-
-	return validate.Struct(p)
-}
-
-func validateSKU(fl validator.FieldLevel) bool {
-	// sku is of format abc-absd-dfsdf
-	re := regexp.MustCompile(`[a-z]+-[a-z]+-[a-z]+`)
-	matches := re.FindAllString(fl.Field().String(), -1)
-
-	return len(matches) == 1
+	return -1
 }
 
 // productList is a hard coded list of products for this

@@ -10,11 +10,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/handlers"
 )
 
 func main() {
-	l := log.New(os.Stdout, "product-api ", log.LstdFlags|log.Lshortfile)
+	l := log.New(os.Stdout, "product-api ", log.LstdFlags) // |log.Lshortfile
+	v := data.NewValidation()
 
 	if err := godotenv.Load(".env"); err != nil {
 		l.Println("no .env file found to loading")
@@ -23,24 +25,27 @@ func main() {
 	bindAddr := os.Getenv("BIND_ADDRESS")
 
 	// create the handlers
-	ph := handlers.NewProducts(l)
+	ph := handlers.NewProducts(l, v)
 
 	// create a new serve mux and register the handlers
 	r := mux.NewRouter()
 
-	getRouter := r.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/products", ph.GetProducts)
+	listAllR := r.Methods(http.MethodGet).Subrouter()
+	listAllR.HandleFunc("/products", ph.ListAll)
 
-	postRouter := r.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/products", ph.AddProducts)
-	postRouter.Use(ph.MiddlewareValidateProduct)
+	listSingleR := r.Methods(http.MethodGet).Subrouter()
+	listSingleR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle)
 
-	putRouter := r.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.UpdateProduct)
-	putRouter.Use(ph.MiddlewareValidateProduct)
+	createR := r.Methods(http.MethodPost).Subrouter()
+	createR.HandleFunc("/products", ph.Create)
+	createR.Use(ph.MiddlewareValidateProduct)
 
-	deleteRouter := r.Methods(http.MethodDelete).Subrouter()
-	deleteRouter.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+	updateR := r.Methods(http.MethodPut).Subrouter()
+	updateR.HandleFunc("/products/{id:[0-9]+}", ph.Update)
+	updateR.Use(ph.MiddlewareValidateProduct)
+
+	deleteR := r.Methods(http.MethodDelete).Subrouter()
+	deleteR.HandleFunc("/products/{id:[0-9]+}", ph.Delete)
 
 	// create a new server
 	srv := http.Server{
