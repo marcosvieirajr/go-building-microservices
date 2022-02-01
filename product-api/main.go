@@ -14,15 +14,13 @@ import (
 	"github.com/marcosvieirajr/go-multi-tier-microservices/handlers"
 )
 
+var bindAddr string
+
 func main() {
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags) // |log.Lshortfile
 	v := data.NewValidation()
 
-	if err := godotenv.Load(".env"); err != nil {
-		l.Println("no .env file found to loading")
-	}
-
-	bindAddr := os.Getenv("BIND_ADDRESS")
+	loadEnvs(l)
 
 	// create the handlers
 	ph := handlers.NewProducts(l, v)
@@ -82,3 +80,12 @@ func main() {
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	srv.Shutdown(ctx)
 }
+
+func loadEnvs(l *log.Logger) {
+	if err := godotenv.Load(".env"); err != nil {
+		l.Println("no .env file found to loading")
+	}
+
+	bindAddr = os.Getenv("BIND_ADDRESS")
+}
+
