@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
+	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
@@ -15,6 +17,7 @@ import (
 )
 
 var bindAddr string
+var aoCORS string
 
 func main() {
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags) // |log.Lshortfile
@@ -45,10 +48,12 @@ func main() {
 	deleteR := r.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/products/{id:[0-9]+}", ph.Delete)
 
+	ch := gohandlers.CORS(gohandlers.AllowedOriginValidator(originValidator))
+
 	// create a new server
 	srv := http.Server{
 		Addr:         bindAddr,          // configure the bind address
-		Handler:      r,                 // set the default handler
+		Handler:      ch(r),             // set the default handler
 		ErrorLog:     l,                 // set the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from the client
 		WriteTimeout: 10 * time.Second,  // max time to write response to the client
@@ -87,5 +92,15 @@ func loadEnvs(l *log.Logger) {
 	}
 
 	bindAddr = os.Getenv("BIND_ADDRESS")
+	aoCORS = os.Getenv("CORS_ALLOWED_ORIGINS")
 }
 
+func originValidator(origin string) bool {
+	a := strings.Split(aoCORS, ",")
+	for _, v := range a {
+		if strings.HasSuffix(origin, v) {
+			return true
+		}
+	}
+	return false
+}
