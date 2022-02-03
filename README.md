@@ -1,10 +1,12 @@
-# Multi-tier Microservice Go System
+# Multi-tier Microservice in Go
 
 Code repository from a building microservice in Go [youtube series](https://www.youtube.com/playlist?list=PLmD8u-IFdreyh6EUfevBcbiuCKzFk0EW_)
 
 ## Content
 
 - [ ] RESTFul microservices
+  - [x] JSON Validation
+  - [x] CORS
 - [ ] gRPC microservices
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
