@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -16,14 +17,21 @@ import (
 	"github.com/marcosvieirajr/go-multi-tier-microservices/handlers"
 )
 
-var bindAddr string
-var aoCORS string
-
 func main() {
-	l := log.New(os.Stdout, "product-api ", log.LstdFlags) // |log.Lshortfile
-	v := data.NewValidation()
+	l := log.New(os.Stdout, "product-api ", log.LstdFlags|log.Lshortfile)
 
-	loadEnvs(l)
+	loadDevEnvs(l)
+
+	var (
+		haEnv = os.Getenv("HTTP_ADDRESS")
+		acEnv = os.Getenv("ALLOWED_CORS")
+
+		httpAddr    = flag.String("http", haEnv, "HTTP service address")
+		allowedCORS = flag.String("cors", acEnv, "Cross-Origin Resource Sharing")
+	)
+	flag.Parse()
+
+	v := data.NewValidation()
 
 	// create the handlers
 	ph := handlers.NewProducts(l, v)
@@ -48,11 +56,11 @@ func main() {
 	deleteR := r.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/products/{id:[0-9]+}", ph.Delete)
 
-	ch := gohandlers.CORS(gohandlers.AllowedOriginValidator(originValidator))
+	ch := gohandlers.CORS(gohandlers.AllowedOriginValidator(originValidator(*allowedCORS)))
 
 	// create a new server
 	srv := http.Server{
-		Addr:         bindAddr,          // configure the bind address
+		Addr:         *httpAddr,         // configure the bind address
 		Handler:      ch(r),             // set the default handler
 		ErrorLog:     l,                 // set the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from the client
@@ -62,7 +70,7 @@ func main() {
 
 	// start the server
 	go func() {
-		l.Printf("starting server on port %v", bindAddr)
+		l.Printf("starting server on port %v", *httpAddr)
 
 		err := srv.ListenAndServe()
 		if err != nil {
@@ -86,21 +94,20 @@ func main() {
 	srv.Shutdown(ctx)
 }
 
-func loadEnvs(l *log.Logger) {
+func loadDevEnvs(l *log.Logger) {
 	if err := godotenv.Load(".env"); err != nil {
 		l.Println("no .env file found to loading")
 	}
-
-	bindAddr = os.Getenv("BIND_ADDRESS")
-	aoCORS = os.Getenv("CORS_ALLOWED_ORIGINS")
 }
 
-func originValidator(origin string) bool {
-	a := strings.Split(aoCORS, ",")
-	for _, v := range a {
-		if strings.HasSuffix(origin, v) {
-			return true
+func originValidator(allowed string) func(string) bool {
+	return func(origin string) bool {
+		a := strings.Split(allowed, ",")
+		for _, v := range a {
+			if strings.HasSuffix(origin, v) {
+				return true
+			}
 		}
+		return false
 	}
-	return false
 }
