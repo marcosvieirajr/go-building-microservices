@@ -6,19 +6,22 @@ import (
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 )
 
-func (p *products) ListAll(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("[DEBUG] get all records")
+func (p *products) HandleListAll() http.HandlerFunc {
+	type request struct{}
+	type response []struct {
+		ID          int     `json:"id"`
+		Name        string  `json:"name" validate:"required"`
+		Description string  `json:"description"`
+		Price       float32 `json:"price" validate:"gt=0"`
+		SKU         string  `json:"sku" validate:"required,sku"`
+	}
 
-	// fetch the products from the datastore
-	prods := data.GetProducts()
+	return func(rw http.ResponseWriter, r *http.Request) {
+		p.log.Debug("get all records")
 
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
-	rw.WriteHeader(http.StatusOK)
+		// fetch the products from the datastore
+		prods := data.GetProducts()
 
-	// serialize the list to JSON
-	err := data.ToJSON(prods, rw)
-	if err != nil {
-		// we should never be here but log the error just incase
-		p.l.Println("[ERROR] get all records")
+		p.respond(rw, r, prods, http.StatusOK)
 	}
 }

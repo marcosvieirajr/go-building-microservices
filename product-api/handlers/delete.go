@@ -9,25 +9,22 @@ import (
 func (p *products) Delete(rw http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 
-	p.l.Println("[DEBUG] deleting record id", id)
+	p.log.Debug("deleting record by id", "id", id)
 
 	err := data.DeleteProduct(id)
 	if err == data.ErrProductNotFound {
-		p.l.Println("[ERROR] deleting record id does not exist")
+		p.log.Error("deleting record id does not exist", "id", id)
 
-		rw.WriteHeader(http.StatusNotFound)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		p.respond(rw, r, GenericError{Message: err.Error()}, http.StatusNotFound)
 		return
 	}
 
 	if err != nil {
-		p.l.Println("[ERROR] deleting record", err)
+		p.log.Error("deleting record", "error", err)
 
-		rw.WriteHeader(http.StatusInternalServerError)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		p.respond(rw, r, GenericError{Message: err.Error()}, http.StatusInternalServerError)
 		return
 	}
 
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
-	rw.WriteHeader(http.StatusNoContent)
+	p.respond(rw, r, nil, http.StatusNoContent)
 }

@@ -6,33 +6,33 @@ import (
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 )
 
-func (p *products) ListSingle(rw http.ResponseWriter, r *http.Request) {
-	id := getProductID(r)
-	p.l.Println("[DEBUG] get record id", id)
-
-	prod, err := data.GetProductById(id)
-	switch err {
-	case nil:
-	case data.ErrProductNotFound:
-		p.l.Println("[ERROR] fetching product", err)
-
-		rw.WriteHeader(http.StatusNotFound)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-		return
-	default:
-		p.l.Println("[ERROR] fetching product", err)
-
-		rw.WriteHeader(http.StatusInternalServerError)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-		return
+func (p *products) HandleListSingle() http.HandlerFunc {
+	type request struct{}
+	type response struct {
+		ID          int     `json:"id"`
+		Name        string  `json:"name" validate:"required"`
+		Description string  `json:"description"`
+		Price       float32 `json:"price" validate:"gt=0"`
+		SKU         string  `json:"sku" validate:"required,sku"`
 	}
 
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
-	rw.WriteHeader(http.StatusOK)
+	return func(rw http.ResponseWriter, r *http.Request) {
+		id := getProductID(r)
+		p.log.Debug("get record with", "id", id)
 
-	err = data.ToJSON(prod, rw)
-	if err != nil {
-		// we should never be here but log the error just incase
-		p.l.Println("[ERROR] serializing product", err)
+		prod, err := data.GetProductById(id)
+		switch err {
+		case nil:
+		case data.ErrProductNotFound:
+			p.log.Error("fetching product", "error", err)
+			p.respond(rw, r, GenericError{Message: err.Error()}, http.StatusNotFound)
+			return
+		default:
+			p.log.Error("fetching product", "error", err)
+			p.respond(rw, r, GenericError{Message: err.Error()}, http.StatusInternalServerError)
+			return
+		}
+
+		p.respond(rw, r, prod, http.StatusOK)
 	}
 }

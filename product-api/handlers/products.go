@@ -1,24 +1,41 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-hclog"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 )
 
 // Products is a http.Handler
 type products struct {
-	l *log.Logger
-	v *data.Validation
+	log hclog.Logger
+	v   *data.Validation
 }
 
 // NewProducts creates a products handler with the given logger
-func NewProducts(l *log.Logger, v *data.Validation) *products {
-	return &products{l, v}
+func NewProducts(l hclog.Logger, v *data.Validation) *products {
+	return &products{log: l, v: v}
+}
+
+func (p *products) respond(rw http.ResponseWriter, r *http.Request, d interface{}, status int) {
+	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
+	rw.WriteHeader(status)
+	if d != nil {
+		err := json.NewEncoder(rw).Encode(d)
+		if err != nil {
+			p.log.Error("serializing product", "error", err)
+			rw.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+}
+
+func (p *products) decode(rw http.ResponseWriter, r *http.Request, d interface{}) error {
+	return json.NewDecoder(r.Body).Decode(d)
 }
 
 type ProductKey struct{}

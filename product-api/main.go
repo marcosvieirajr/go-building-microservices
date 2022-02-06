@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,25 +13,47 @@ import (
 
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-hclog"
 	"github.com/joho/godotenv"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/handlers"
 )
 
 func main() {
-	l := log.New(os.Stdout, "product-api ", log.LstdFlags|log.Lshortfile)
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
 
-	loadDevEnvs(l)
+func run() error {
+	loadDevEnvs(log.Default())
 
 	var (
-		haEnv = os.Getenv("HTTP_ADDRESS")
-		acEnv = os.Getenv("ALLOWED_CORS")
+		haEnv       = os.Getenv("HTTP_ADDRESS")
+		acEnv       = os.Getenv("ALLOWED_CORS")
+		logLevelEnv = os.Getenv("LOG_LEVEL")
 
 		httpAddr    = flag.String("http", haEnv, "HTTP service address")
 		allowedCORS = flag.String("cors", acEnv, "Cross-Origin Resource Sharing")
+		logLevel    = flag.String("LOG_LEVEL", logLevelEnv, "Log output level for the server [debug, info, trace]")
 	)
 	flag.Parse()
 
+	dl := !strings.EqualFold("info", *logLevel)
+
+	// l := log.New(os.Stdout, "product-api ", log.LstdFlags|log.Lshortfile)
+	l := hclog.New(&hclog.LoggerOptions{
+		Name:            "product-api",
+		Level:           hclog.LevelFromString(*logLevel),
+		Output:          os.Stdout,
+		JSONFormat:      false,
+		IncludeLocation: dl,
+		TimeFormat:      "2006-01-02 15:04:05.000", //"yyyy-MM-ddTHH:mm:ss",
+	})
+	sl := l.StandardLogger(&hclog.StandardLoggerOptions{
+		InferLevels: true,
+	})
 	v := data.NewValidation()
 
 	// create the handlers
@@ -40,17 +63,17 @@ func main() {
 	r := mux.NewRouter()
 
 	listAllR := r.Methods(http.MethodGet).Subrouter()
-	listAllR.HandleFunc("/products", ph.ListAll)
+	listAllR.HandleFunc("/products", ph.HandleListAll())
 
 	listSingleR := r.Methods(http.MethodGet).Subrouter()
-	listSingleR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle)
+	listSingleR.HandleFunc("/products/{id:[0-9]+}", ph.HandleListSingle())
 
 	createR := r.Methods(http.MethodPost).Subrouter()
-	createR.HandleFunc("/products", ph.Create)
+	createR.HandleFunc("/products", ph.HandleCreate())
 	createR.Use(ph.MiddlewareValidateProduct)
 
 	updateR := r.Methods(http.MethodPut).Subrouter()
-	updateR.HandleFunc("/products/{id:[0-9]+}", ph.Update)
+	updateR.HandleFunc("/products/{id:[0-9]+}", ph.HandleUpdate())
 	updateR.Use(ph.MiddlewareValidateProduct)
 
 	deleteR := r.Methods(http.MethodDelete).Subrouter()
@@ -62,7 +85,7 @@ func main() {
 	srv := http.Server{
 		Addr:         *httpAddr,         // configure the bind address
 		Handler:      ch(r),             // set the default handler
-		ErrorLog:     l,                 // set the logger for the server
+		ErrorLog:     sl,                // set the logger for the server
 		ReadTimeout:  5 * time.Second,   // max time to read request from the client
 		WriteTimeout: 10 * time.Second,  // max time to write response to the client
 		IdleTimeout:  120 * time.Second, // max time for connections using TCP Keep-Alive
@@ -70,11 +93,11 @@ func main() {
 
 	// start the server
 	go func() {
-		l.Printf("starting server on port %v", *httpAddr)
+		l.Info("starting server", "bind_address", *httpAddr)
 
 		err := srv.ListenAndServe()
 		if err != nil {
-			l.Printf("error starting server: %s\n", err)
+			l.Error("error starting server", "error", err)
 			os.Exit(1)
 		}
 	}()
@@ -87,11 +110,12 @@ func main() {
 
 	// Block until a signal is received.
 	sig := <-c
-	l.Printf("got signal: %v. trying graceful shutdown", sig)
+	l.Info("shutting down server by signal", "signal", sig)
 
 	// gracefully shutdown the server, waiting max 30 seconds for current operations to complete
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	srv.Shutdown(ctx)
+	return nil
 }
 
 func loadDevEnvs(l *log.Logger) {

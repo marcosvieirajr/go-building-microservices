@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 )
 
-func (p *products) Create(rw http.ResponseWriter, r *http.Request) {
-	// fetch the product from the context
-	prod := r.Context().Value(ProductKey{}).(*data.Product)
+func (p *products) HandleCreate() http.HandlerFunc {
 
-	p.l.Printf("[DEBUG] inserting product %#v\n", prod)
-	data.AddProduct(prod)
+	return func(rw http.ResponseWriter, r *http.Request) {
+		// fetch the product from the context
+		prod := r.Context().Value(ProductKey{}).(*data.Product)
 
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
-	rw.Header().Add("Locator", fmt.Sprintf("%v/%v", r.RequestURI, prod.ID))
-	rw.WriteHeader(http.StatusCreated)
+		p.log.Debug("inserting product", "product", hclog.Fmt("%#v", prod))
+		data.AddProduct(prod)
+
+		rw.Header().Add("Locator", fmt.Sprintf("%v/%v", r.RequestURI, prod.ID))
+		p.respond(rw, r, nil, http.StatusCreated)
+	}
 }

@@ -10,24 +10,19 @@ import (
 func (p products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		prod := &data.Product{}
-		err := data.FromJSON(prod, r.Body)
+		err := p.decode(rw, r, prod)
 		if err != nil {
-			p.l.Println("[ERROR] deserializing product", err)
-
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
-			// http.Error(rw, "error reading product", http.StatusBadRequest)
+			p.log.Error("deserializing product", "error", err)
+			p.respond(rw, r, GenericError{Message: err.Error()}, http.StatusBadRequest)
 			return
 		}
 
 		// validate the product
 		errs := p.v.Validate(prod)
 		if len(errs) != 0 {
-			p.l.Println("[ERROR] validating product", errs)
-
+			p.log.Error("validating product", "error", errs)
 			// return the validation messages as an array
-			rw.WriteHeader(http.StatusUnprocessableEntity)
-			data.ToJSON(&ValidationError{Messages: errs.Errors()}, rw)
+			p.respond(rw, r, ValidationError{Messages: errs.Errors()}, http.StatusBadRequest)
 			return
 		}
 

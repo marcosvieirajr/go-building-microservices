@@ -6,23 +6,22 @@ import (
 	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
 )
 
-func (p *products) Update(rw http.ResponseWriter, r *http.Request) {
-	id := getProductID(r)
-	p.l.Println("[DEBUG] updating record id", id)
+func (p *products) HandleUpdate() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		id := getProductID(r)
+		p.log.Debug("updating record with", "id", id)
 
-	// fetch the product from the context
-	prod := r.Context().Value(ProductKey{}).(*data.Product)
-	prod.ID = id
+		// fetch the product from the context
+		prod := r.Context().Value(ProductKey{}).(*data.Product)
+		prod.ID = id
 
-	err := data.UpdateProduct(*prod)
-	if err == data.ErrProductNotFound {
-		p.l.Println("[ERROR] product not found", err)
+		err := data.UpdateProduct(*prod)
+		if err == data.ErrProductNotFound {
+			p.log.Error("product not found", "error", err)
+			p.respond(rw, r, GenericError{Message: "Product not found in database"}, http.StatusNotFound)
+			return
+		}
 
-		rw.WriteHeader(http.StatusNotFound)
-		data.ToJSON(&GenericError{Message: "Product not found in database"}, rw)
-		return
+		p.respond(rw, r, nil, http.StatusNoContent)
 	}
-
-	rw.Header().Add("Content-Type", "application/json; charset=utf-8")
-	rw.WriteHeader(http.StatusNoContent)
 }
