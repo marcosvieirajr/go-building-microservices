@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
+	"github.com/marcosvieirajr/go-multi-tier-microservices/product-api/data"
 )
 
 func (p *products) HandleCreate() http.HandlerFunc {

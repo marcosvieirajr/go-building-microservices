@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
+	"github.com/marcosvieirajr/go-multi-tier-microservices/product-api/data"
 )
 
 func (p *products) Delete(rw http.ResponseWriter, r *http.Request) {

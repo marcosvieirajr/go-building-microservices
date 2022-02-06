@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
-	"github.com/marcosvieirajr/go-multi-tier-microservices/data"
+	"github.com/marcosvieirajr/go-multi-tier-microservices/product-api/data"
 )
 
 // Products is a http.Handler

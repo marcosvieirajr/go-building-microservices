@@ -1,4 +1,4 @@
-module github.com/marcosvieirajr/go-multi-tier-microservices
+module github.com/marcosvieirajr/go-multi-tier-microservices/product-api
 
 go 1.17
 
