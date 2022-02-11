@@ -8,6 +8,7 @@ import (
 	"github.com/marcosvieirajr/go-multi-tier-microservices/currency/proto"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/currency/server"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
 	cs := server.New(log)
 
 	proto.RegisterCurrencyServer(gs, cs)
+	reflection.Register(gs)
 
 	l, err := net.Listen("tcp", ":9092")
 	if err != nil {
