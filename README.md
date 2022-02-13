@@ -8,6 +8,8 @@ Code repository from a building microservice in Go [youtube series](https://www.
   - [x] JSON Validation
   - [x] CORS
 - [ ] gRPC microservices
+  - [x] server
+  - [ ] client
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
 - [ ] Continuous Delivery
