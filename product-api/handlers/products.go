@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
+	"github.com/marcosvieirajr/go-multi-tier-microservices/currency/proto"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/product-api/data"
 )
 
@@ -15,11 +16,16 @@ import (
 type products struct {
 	log hclog.Logger
 	v   *data.Validation
+	cc  proto.CurrencyClient
 }
 
 // NewProducts creates a products handler with the given logger
-func NewProducts(l hclog.Logger, v *data.Validation) *products {
-	return &products{log: l, v: v}
+func NewProducts(l hclog.Logger, v *data.Validation, cc proto.CurrencyClient) *products {
+	return &products{
+		log: l,
+		v:   v,
+		cc:  cc,
+	}
 }
 
 func (p *products) respond(rw http.ResponseWriter, r *http.Request, d interface{}, status int) {

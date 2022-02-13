@@ -15,8 +15,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
 	"github.com/joho/godotenv"
+	"github.com/marcosvieirajr/go-multi-tier-microservices/currency/proto"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/product-api/data"
 	"github.com/marcosvieirajr/go-multi-tier-microservices/product-api/handlers"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -49,15 +52,29 @@ func run() error {
 		Output:          os.Stdout,
 		JSONFormat:      false,
 		IncludeLocation: dl,
-		TimeFormat:      "2006-01-02 15:04:05.000", //"yyyy-MM-ddTHH:mm:ss",
+		TimeFormat:      "2006-01-02 15:04:05.000",
 	})
 	sl := l.StandardLogger(&hclog.StandardLoggerOptions{
 		InferLevels: true,
 	})
+
 	v := data.NewValidation()
 
+	// create client
+	var opts []grpc.DialOption = []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+	conn, err := grpc.Dial(":9092", opts...)
+	if err != nil {
+		l.Error("error connecting to grpc server", "error", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	cc := proto.NewCurrencyClient(conn)
+
 	// create the handlers
-	ph := handlers.NewProducts(l, v)
+	ph := handlers.NewProducts(l, v, cc)
 
 	// create a new serve mux and register the handlers
 	r := mux.NewRouter()
