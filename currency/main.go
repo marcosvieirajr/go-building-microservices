@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"os"
 
@@ -28,7 +29,7 @@ func main() {
 	reflection.Register(gs)
 
 	// create a TCP socket for inbound server connections
-	l, err := net.Listen("tcp", ":9092")
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", 9092))
 	if err != nil {
 		log.Error("unable to listen", "error", err)
 		os.Exit(1)

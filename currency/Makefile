@@ -1,3 +1,5 @@
+.PHONY: proto
+
 proto: 
 	@ PATH=$(PATH):$(shell go env GOPATH)/bin protoc \
 	--go_out=.      --go_opt=paths=source_relative \
