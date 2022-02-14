@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "product-api"
+		},
+		{
+			"path": "currency"
+		}
+	],
+	"settings": {
+		// "files.autoSave": "onWindowChange"
+		// "files.autoSave": "onFocusChange"
+	}
+}
