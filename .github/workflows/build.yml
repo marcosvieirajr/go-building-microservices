@@ -1,0 +1,20 @@
+name: Main Workflow
+on: [push, workflow_dispatch]
+    
+env:
+  ENV_NAME: 'env value'
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    # name: job-name
+    steps:
+      - name: Checkout Repository
+        uses: action/checkout@v2
+
+      # - name: Test
+      # - name: Sonar
+      # - name: Quality gate
+      # - name: Build
+      # - name: Push to registry
+      # - name: Create Git Version
