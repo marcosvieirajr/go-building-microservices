@@ -30,6 +30,7 @@ jobs:
   
   sonarcloud:
     name: SonarCloud
+    needs: pipeline 
     runs-on: ubuntu-latest
 
     steps:
