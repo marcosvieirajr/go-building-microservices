@@ -12,23 +12,33 @@ jobs:
       matrix: 
         go: ['1.17']
         mod: ['product-api', 'currency']
-    name: Go ${{ matrix.go }} job
+    name: Go ${{ matrix.go }} ${{ matrix.mod }} module job
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Setup go
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go }}
 
-      - name: Test
+      - name: Test 
         run: |
           cd ${{ github.workspace }}/${{ matrix.mod }}
           go test -race ./...
 
-      # - name: Sonar
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        # change the analysis base directory by using the optional input projectBaseDir
+        # with:
+        #   projectBaseDir: my-custom-directory 
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       # - name: Quality gate
       # - name: Build
       # - name: Push to registry
