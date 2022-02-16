@@ -41,8 +41,10 @@ jobs:
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
+        with:
+          args: >
+          -Dsonar.verbose=true
         # change the analysis base directory by using the optional input projectBaseDir
-        # with:
         #   projectBaseDir: my-custom-directory 
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
