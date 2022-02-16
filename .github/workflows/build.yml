@@ -7,10 +7,14 @@ env:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    # name: job-name
+    name: job-name
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+
+      - name: List files in the repository
+        run: |
+          tree ${{ github.workspace }}
 
       # - name: Test
       # - name: Sonar
