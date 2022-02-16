@@ -7,16 +7,23 @@ env:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    name: job-name
+    strategy:
+      matrix: 
+        go: ['1.17']
+    name: Go ${{ matrix.go }} job
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: List files in the repository
-        run: |
-          tree ${{ github.workspace }}
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
 
-      # - name: Test
+      - name: Test
+        run: go version
+
       # - name: Sonar
       # - name: Quality gate
       # - name: Build
