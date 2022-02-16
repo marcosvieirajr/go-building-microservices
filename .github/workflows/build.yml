@@ -17,8 +17,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Setup go
         uses: actions/setup-go@v2
@@ -29,6 +27,16 @@ jobs:
         run: |
           cd ${{ github.workspace }}/${{ matrix.mod }}
           go test -race ./...
+  
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
