@@ -8,8 +8,10 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 2
       matrix: 
         go: ['1.17']
+        mod: ['product-api', 'currency']
     name: Go ${{ matrix.go }} job
 
     steps:
@@ -22,7 +24,9 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Test
-        run: go version
+        run: |
+          cd ${{ github.workspace }}/${{ matrix.mod }}
+          go test -race ./...
 
       # - name: Sonar
       # - name: Quality gate
