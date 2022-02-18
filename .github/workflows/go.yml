@@ -40,6 +40,9 @@ jobs:
           echo
           echo 3. What environment variables are available?
           env
+          echo
+          echo ${{ github.event.repository.name }}
+          echo ${{ github.repository }}
 
       # - name: Get dependencies
       #   run: |
@@ -66,6 +69,7 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v2
         with:
+          context: ${{ github.workspace }}/${{ matrix.mod }} 
           push: false
           tags: ${{ github.event.repository.name }}:latest, ${{ github.repository }}:latest
 
