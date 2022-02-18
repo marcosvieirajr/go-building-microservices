@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -64,7 +65,7 @@ func run() error {
 	var opts []grpc.DialOption = []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-	conn, err := grpc.Dial(":9092", opts...)
+	conn, err := grpc.Dial("currency:9092", opts...)
 	if err != nil {
 		l.Error("error connecting to grpc server", "error", err)
 		os.Exit(1)
@@ -95,6 +96,12 @@ func run() error {
 
 	deleteR := r.Methods(http.MethodDelete).Subrouter()
 	deleteR.HandleFunc("/products/{id:[0-9]+}", ph.Delete)
+
+	pingR := r.Methods(http.MethodGet).Subrouter()
+	pingR.HandleFunc("/ping", func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+		json.NewEncoder(rw).Encode(struct{ Status string }{Status: "OK"})
+	})
 
 	ch := gohandlers.CORS(gohandlers.AllowedOriginValidator(originValidator(*allowedCORS)))
 
