@@ -43,6 +43,11 @@ jobs:
           echo
           echo ${{ github.event.repository.name }}
           echo ${{ github.repository }}
+          echo ${{ github.event.repository.name }}
+          echo ${{ github.ref_name }}
+          echo "$GITHUB_REF"
+          echo "${GITHUB_REF##*/}"
+          echo $(git describe --tags --abbrev=0)
 
       # - name: Get dependencies
       #   run: |
@@ -66,13 +71,21 @@ jobs:
           # make test
           go test -v -cover ./...
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
       - name: Build Docker image
         uses: docker/build-push-action@v2
         with:
           context: ${{ github.workspace }}/${{ matrix.mod }} 
           push: false
-          tags: ${{ github.event.repository.name }}:latest, ${{ github.repository }}:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/microservices:latest, ${{ github.repository }}:latest
 
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
   # test:
   #   name: Test ${{ matrix.mod }}
   #   needs: setup
