@@ -1,4 +1,4 @@
-name: Go Workflow
+name: Run CI Go
 
 on:
   push:
@@ -12,8 +12,8 @@ on:
 
 jobs:
 
-  test:
-    name: Test ${{ matrix.mod }}
+  build-end-test:
+    name: Build and Test ${{ matrix.mod }}
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 2
@@ -22,13 +22,13 @@ jobs:
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Set up Go
+      - name: Install Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
+
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Run multi-line command
         run: |
@@ -41,21 +41,33 @@ jobs:
           echo 3. What environment variables are available?
           env
 
-      - name: Get dependencies
+      # - name: Get dependencies
+      #   run: |
+      #     cd ${{ github.workspace }}/${{ matrix.mod }}
+      #     go get -v -t -d ./...
+
+      - name: Fetch required Go modules
         run: |
           cd ${{ github.workspace }}/${{ matrix.mod }}
-          go get -v -t -d ./...
+          go mod download
 
+      # (Optional)
       - name: Build
         run: |
           cd ${{ github.workspace }}/${{ matrix.mod }}
           go build -v ./...
 
-      - name: Test 
+      - name: Run tests 
         run: |
           cd ${{ github.workspace }}/${{ matrix.mod }}
           # make test
           go test -v -cover ./...
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v2
+        with:
+          push: false
+          tags: ${{ github.event.repository.name }}:latest, ${{ github.repository }}:latest
 
   # test:
   #   name: Test ${{ matrix.mod }}
@@ -129,6 +141,6 @@ jobs:
   #         cd ${{ github.workspace }}/${{ matrix.mod }}
   #         go build -v ./...
 
-
+# https://github.com/marketplace/actions/build-and-push-docker-images
       # - name: Push to registry
       # - name: Create Git Version
