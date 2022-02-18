@@ -8,6 +8,9 @@
 		}
 	],
 	"settings": {
+		"yaml.schemas": {
+			"https://json.schemastore.org/github-workflow.json": "untitled:/Users/marcosvieirajr/Documents/estudo/go/go-multi-tier-microservices/.github/workflows/build.yml"
+		}
 		// "files.autoSave": "onWindowChange"
 		// "files.autoSave": "onFocusChange"
 	}
