@@ -1,0 +1,155 @@
+name: Release to Docker Hub
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+    
+# env:
+#   ENV_NAME: 'env value'
+
+jobs:
+
+  release:
+    name: Build and Test ${{ matrix.mod }}
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix: 
+        mod: ['product-api', 'currency']
+
+    steps:
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run multi-line command
+        run: |
+          echo 1. What is in this directory?
+          tree
+          echo
+          echo 2. What is the go version?
+          go version
+          echo
+          echo 3. What environment variables are available?
+          env
+          echo
+          echo ${{ github.event.repository.name }}
+          echo ${{ github.repository }}
+          echo ${{ github.event.repository.name }}
+          echo ${{ github.ref_name }}
+          echo "$GITHUB_REF"
+          echo "${GITHUB_REF##*/}"
+          echo $(git describe --tags --abbrev=0)
+
+      # - name: Get dependencies
+      #   run: |
+      #     cd ${{ github.workspace }}/${{ matrix.mod }}
+      #     go get -v -t -d ./...
+
+      - name: Fetch required Go modules
+        run: |
+          cd ${{ github.workspace }}/${{ matrix.mod }}
+          go mod download
+
+      # (Optional)
+      - name: Build
+        run: |
+          cd ${{ github.workspace }}/${{ matrix.mod }}
+          go build -v ./...
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ github.workspace }}/${{ matrix.mod }} 
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/microservices:latest, ${{ github.repository }}:latest
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+  # test:
+  #   name: Test ${{ matrix.mod }}
+  #   needs: setup
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     max-parallel: 2
+  #     matrix: 
+  #       mod: ['product-api', 'currency']
+  #   steps:
+  #     # - name: Checkout Repository
+  #     #   uses: actions/checkout@v2
+
+  #     # - name: Setup go
+  #     #   uses: actions/setup-go@v2
+  #     #   with:
+  #     #     go-version: 1.17
+
+  #     # - name: Build
+  #     #   run: |
+  #     #     cd ${{ github.workspace }}/${{ matrix.mod }}
+  #     #     go build -v ./...
+
+  #     - name: Test 
+  #       run: |
+  #         cd ${{ github.workspace }}/${{ matrix.mod }}
+  #         go test -race ./...
+  
+  # sonarcloud:
+  #   name: SonarCloud
+  #   needs: build-end-test
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v2
+  #       with:
+  #         # Disabling shallow clone is recommended for improving relevancy of reporting
+  #         fetch-depth: 0
+
+  #     # https://github.com/marketplace/actions/sonarcloud-scan
+  #     - name: SonarCloud Scan
+  #       uses: sonarsource/sonarcloud-github-action@master
+  #       # with:
+  #       #   # change the analysis base directory by using the optional input projectBaseDir
+  #       #   projectBaseDir: my-custom-directory 
+  #       #   args: >
+  #       #     -Dsonar.verbose=true
+  #       env: 
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      
+      # https://github.com/marketplace/actions/sonarqube-quality-gate-check
+      # - name: SonarQube Quality Gate check
+      #   uses: sonarsource/sonarqube-quality-gate-action@master
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # build:
+  #   name: Test ${{ matrix.mod }}
+  #   needs: sonarcloud
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     max-parallel: 2
+  #     matrix: 
+  #       mod: ['product-api', 'currency']
+  #   steps:
+  #     - name: Build
+  #       run: |
+  #         cd ${{ github.workspace }}/${{ matrix.mod }}
+  #         go build -v ./...
+
+# https://github.com/marketplace/actions/build-and-push-docker-images
+      # - name: Push to registry
+      # - name: Create Git Version
