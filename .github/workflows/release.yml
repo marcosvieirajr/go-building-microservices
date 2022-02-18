@@ -74,7 +74,7 @@ jobs:
         with:
           context: ${{ github.workspace }}/${{ matrix.mod }} 
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/microservices:latest, ${{ github.repository }}:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:latest, ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:${{ github.ref_name }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
@@ -127,7 +127,7 @@ jobs:
   #       #     -Dsonar.verbose=true
   #       env: 
   #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
       # https://github.com/marketplace/actions/sonarqube-quality-gate-check
       # - name: SonarQube Quality Gate check

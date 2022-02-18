@@ -82,7 +82,7 @@ jobs:
         with:
           context: ${{ github.workspace }}/${{ matrix.mod }} 
           push: false
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/microservices:latest, ${{ github.repository }}:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:latest
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
