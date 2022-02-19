@@ -52,6 +52,7 @@ jobs:
           echo "$GITHUB_REF"
           echo "${GITHUB_REF##*/}"
           echo $(git describe --tags --abbrev=0)
+          echo ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:${{ github.ref_name }}
 
       # - name: Get dependencies
       #   run: |
@@ -69,7 +70,7 @@ jobs:
           cd ${{ github.workspace }}/${{ matrix.mod }}
           go build -v ./...
 
-      - name: Build Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: ${{ github.workspace }}/${{ matrix.mod }} 
