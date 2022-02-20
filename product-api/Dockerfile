@@ -7,14 +7,13 @@ FROM golang:1.17-buster AS build
 
 WORKDIR /app
 
-COPY go.mod ./
-COPY go.sum ./
+COPY go.mod .
+COPY go.sum .
 RUN go mod download
 
 COPY . ./
 
-RUN go build -v -o /app
-
+RUN go build -o /app-builded
 
 # --- final (target) stage ---
 
@@ -23,7 +22,7 @@ FROM gcr.io/distroless/base-debian10
 
 WORKDIR /
 
-COPY --from=build /app /app
+COPY --from=build /app-builded /app
 
 ENV HTTP_ADDRESS=:8080 
 
