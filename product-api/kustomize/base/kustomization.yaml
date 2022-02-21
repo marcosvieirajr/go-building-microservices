@@ -1,0 +1,7 @@
+# kustomize build kustomize/base | kubectl apply -f -
+
+commonLabels:
+  app: product-api
+
+resources:
+- deployment.yaml
