@@ -2,8 +2,8 @@
 
 # --- first (build) stage ---
 
-FROM golang:1.17-buster AS build
-# FROM golang:1.17-alpine AS build
+# FROM golang:1.17-buster AS build
+FROM golang:1.17-alpine AS build
 
 WORKDIR /app
 
@@ -13,12 +13,14 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o /app-builded
+RUN env GOOS=linux GOARCH=arm64 \
+    go build -o /app-builded
+
 
 # --- final (target) stage ---
 
-FROM gcr.io/distroless/base-debian10
-# FROM alpine:3.15
+# FROM gcr.io/distroless/base-debian10
+FROM alpine:3.15
 
 WORKDIR /
 
@@ -28,6 +30,6 @@ ENV HTTP_ADDRESS=:8080
 
 EXPOSE 8080
 
-USER nonroot:nonroot
+# USER nonroot:nonroot
 
 ENTRYPOINT ["/app"]
