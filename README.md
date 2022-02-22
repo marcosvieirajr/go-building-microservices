@@ -7,9 +7,9 @@ Code repository from a building microservice in Go [youtube series](https://www.
 - [ ] RESTFul microservices
   - [x] JSON Validation
   - [x] CORS
-- [ ] gRPC microservices
+- [x] gRPC microservices
   - [x] server
-  - [ ] client
+  - [x] client
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
 - [ ] Continuous Delivery
