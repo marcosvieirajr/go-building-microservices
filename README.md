@@ -10,6 +10,10 @@ Code repository from a building microservice in Go [youtube series](https://www.
 - [x] gRPC microservices
   - [x] server
   - [x] client
+- [ ] k8s kustomize
+  - [x] base
+  - [ ] hlg overlay
+  - [ ] prd overlay
 - [ ] Packaging applications with Docker
 - [ ] Testing microservice
 - [ ] Continuous Delivery
