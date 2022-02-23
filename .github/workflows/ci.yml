@@ -21,6 +21,16 @@ jobs:
         mod: ['product-api', 'currency']
 
     steps:
+      - name: Kubeconfig
+        uses: azure/k8s-set-context@v2
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_OCI }}
+          # context: <context name> # current-context from kubeconfig is used as default
+
+      - name: Kubectl get pods
+        run: |
+          kubectl get pods 
 
       - name: Install Go
         uses: actions/setup-go@v2
@@ -104,7 +114,8 @@ jobs:
           context: ${{ github.workspace }}/${{ matrix.mod }}
           push: false
           load: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to:   type=local,dest=/tmp/.buildx-cache
 
