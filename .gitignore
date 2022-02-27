@@ -13,3 +13,20 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# mac os
+.DS_Store
+
+# reports
+tslint-report.json
+test-report.xml
+
+# dotenv environment variables file
+.env
+
+# Logs
+logs
+*.log
+
+# VS Code files
+.vscode
