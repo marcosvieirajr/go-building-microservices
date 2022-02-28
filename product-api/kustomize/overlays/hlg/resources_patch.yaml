@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: product-api
+          resources:
+            limits:
+              cpu: 300m
+              memory: 200Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
