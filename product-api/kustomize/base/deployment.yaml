@@ -3,20 +3,36 @@ kind: Deployment
 metadata:
   name: product-api
 spec:
-  replicas: 1
+  replicas: 1 # (Defaults to 1)
+  revisionHistoryLimit: 5 # (Defaults to 10)
   selector:
     matchLabels:
       app: product-api
-  strategy: {}
+  strategy:
+    type: RollingUpdate # (Default is RollingUpdate)
+    rollingUpdate:
+      maxSurge: 25% # (Defaults to 25%)
+      maxUnavailable: 25% # (Defaults to 25%)
   template:
     metadata:
       labels:
         app: product-api
     spec:
       containers:
-      - image: marcosvieirajr/product-api
-        name: product-api
-        ports:
-          - containerPort: 8080
-            protocol: TCP
-        resources: {}
+        - name: product-api
+          image: marcosvieirajr/product-api
+          envFrom:
+            - configMapRef:
+                name: product-api
+            # - configMapRef:
+            #     name: product-api-sec
+          ports:
+            - containerPort: 8080
+              protocol: TCP # (Defaults to "TCP")
+          resources: {}
+          # startupProbe: {}
+          # readinessProbe: {}
+          # livenessProbe: {}
+      restartPolicy: Always # (Default to Always)
+      terminationGracePeriodSeconds: 30 # (Defaults to 30 seconds)
+            

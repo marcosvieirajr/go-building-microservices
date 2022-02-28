@@ -1,7 +1,38 @@
 # kustomize build kustomize/base | kubectl apply -f -
 
-commonLabels:
-  app: product-api
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 
 resources:
 - deployment.yaml
+- configmap.yaml
+- service.yaml
+- hpa.yaml
+commonLabels:
+  app: product-api
+
+# namespace: kustomize-namespace
+
+# replicas:
+# - name: product-api
+#   count: 5
+
+# configMapGenerator:
+# - name: my-new-configmap
+#   # behavior: [create|replace|merge]
+#   # behavior: merge
+#   options:
+#   #   disableNameSuffixHash: true
+#   #   annotations:
+#   #     dashboard: "1"
+#     labels:
+#       app.kubernetes.io/name: "app1"
+#       pet: dog
+#   literals:
+#   - KEY1=value1-generator
+#   - KEY2=value2-generator
+
+# images:
+# - name:
+#   newName:
+#   newTag:
