@@ -30,3 +30,4 @@ Code repository from a building microservice in Go [youtube series](https://www.
 ## References
 
 - [Awesome gRPC](https://github.com/grpc-ecosystem/awesome-grpc)
+- [Protocol Buffers - Language Guide (proto3)](https://developers.google.com/protocol-buffers/docs/proto3)
