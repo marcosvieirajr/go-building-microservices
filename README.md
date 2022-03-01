@@ -26,3 +26,7 @@ Code repository from a building microservice in Go [youtube series](https://www.
 - [ ] Asynchronous microservices
 - [ ] Caching
 - [ ] Microservice reliability using a Service Mesh
+
+## References
+
+- [Awesome gRPC](https://github.com/grpc-ecosystem/awesome-grpc)
