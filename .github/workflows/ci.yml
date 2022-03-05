@@ -21,6 +21,7 @@ jobs:
         mod: ['product-api', 'currency']
 
     steps:
+      # https://github.com/marketplace/actions/kubernetes-set-context
       - name: Kubeconfig
         uses: azure/k8s-set-context@v2
         with:
@@ -31,6 +32,12 @@ jobs:
       - name: Kubectl get pods
         run: |
           kubectl get pods 
+      
+      # https://github.com/marketplace/actions/kubectl-tool-installer
+      # - uses: azure/setup-kubectl@v2.0
+      #   with:
+      #     version: '<version>' # default is latest stable
+      #   id: install
 
       - name: Install Go
         uses: actions/setup-go@v2
@@ -39,6 +46,24 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            name/app
+            ghcr.io/username/app
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
 
       - name: Run multi-line command
         run: |
@@ -58,6 +83,9 @@ jobs:
           echo "$GITHUB_REF"
           echo "${GITHUB_REF##*/}"
           echo $(git describe --tags --abbrev=0)
+          echo "----"
+          echo tags: ${{ steps.meta.outputs.tags }}
+          echo labels: ${{ steps.meta.outputs.labels }}
 
       # - name: Get dependencies
       #   run: |
