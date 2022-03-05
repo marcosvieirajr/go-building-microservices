@@ -21,6 +21,7 @@ RUN env GOOS=linux GOARCH=arm64 \
 
 # FROM gcr.io/distroless/base-debian10
 FROM alpine:3.15
+LABEL maintainer="Marcos Vieira Jr"
 
 WORKDIR /
 
