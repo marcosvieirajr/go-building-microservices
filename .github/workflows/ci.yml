@@ -153,6 +153,13 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.mod }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to:   type=local,dest=/tmp/.buildx-cache
+          # cache-from: type=registry,ref=user/app:latest
+          # cache-to: type=inline
+
+      - name: Run multi-line docker tags/labels
+        run: |
+          echo tags: ${{ steps.meta.outputs.tags }}
+          echo labels: ${{ steps.meta.outputs.labels }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
